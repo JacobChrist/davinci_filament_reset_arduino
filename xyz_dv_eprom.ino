@@ -53,12 +53,35 @@ Pinout looking at the pads on the EEPROM board
 #define TOTALLEN 0x08 //4 Bytes
 #define NEWLEN 0x0C //4 Bytes
 #define HEADTEMP 0x10	//2 Bytes
-#define BEDTEMP 0x12	//2Bytes
+#define BEDTEMP 0x12	//2 Bytes
 #define MLOC 0x14	//2 Bytes
 #define DLOC 0x16	//2 Bytes
 #define SN 0x18		//12 Bytes
 #define CRC 0x24	//2 Bytes
 #define LEN2 0x34	//4 Bytes
+
+typedef struct {
+  int8_t  tCODE;     // 0x00 // 1 Byte
+  int8_t  tMATERIAL; // 0x01 // 1 Byte
+  int16_t tCOLOR;    // 0x02 // 2 Bytes
+  int8_t  tdum1;     // 0x04 // 1 Byte
+  int32_t tDATE;     // 0x05 // 4 Bytes
+  int32_t tTOTALLEN; // 0x08 // 4 Bytes
+  int32_t tNEWLEN;   // 0x0C // 4 Bytes
+  int16_t tHEADTEMP; // 0x10 // 2 Bytes
+  int16_t tBEDTEMP;  // 0x12 // 2 Bytes
+  int16_t tMLOC;     // 0x14 // 2 Bytes
+  int16_t tDLOC;     // 0x16 // 2 Bytes
+  char tSN[12];      // 0x18 //12 Bytes
+  int16_t tCRC;      // 0x24 // 2 Bytes
+  byte tdum2[13];    // 0x26 //13 Bytes
+  int32_t tLEN2;     // 0x34 // 4 Bytes
+  byte tdum3[4];     // 0x38 // 8 Bytes
+} cart __attribute__((packed));
+struct {
+  cart low;
+  cart high;
+}eeprom __attribute__((packed));
 
 void IncrementSerial(unsigned char * cArray, long lAddress, long lSize)
 {
@@ -340,7 +363,7 @@ static void status(boolean r)
 
 static void dump_eeprom(word address,word length)
 {
-  byte buf[128];
+  byte *buf = (byte *)&eeprom; //[128];
   char lbuf[80];
   char *x;
   int i,j;
@@ -400,9 +423,10 @@ char bt[] = {0x5a,0x00}; //90C
 //Materials
 
 //char mt[] = {0x41}; //ABS
-//char mt[] = {0x50}; //PLA
-char mt[] = {0x46}; //Flex
+char mt[] = {0x50}; //PLA
+//char mt[] = {0x46}; //Flex
 
+byte serial_number[20];
 
 byte sr;
 NanodeUNIO unio(NANODE_MAC_DEVICE);
@@ -412,43 +436,43 @@ void setup() {
   Serial.begin(115200);
   while(!Serial);
   delay(250);
+  test_DaVinci_EEPROM();
+  read_DaVinci_EEPROM();
 }
 
-void loop() {
-  
+void test_DaVinci_EEPROM() {
   do {
     digitalWrite(led, LOW); 
     Serial.println("Testing connection to Da Vinci EEPROM CHIP\n");    
     delay(100);
     digitalWrite(led, HIGH);
   } while(!unio.read_status(&sr));
-  
   Serial.println("Da Vinci EEPROM found...");
+}
+
+void read_DaVinci_EEPROM(){
   Serial.println("Reading the Davinci EEPROM Contents...");
   dump_eeprom(0,128);
   //dump_eeprom(116,4);
 	
   //Read the serial number - added by Matt
-  byte buf[20];
-  memset(buf,0,20);
-  status(unio.read(buf,SN,12));
+  memset(serial_number,0,20);
+  status(unio.read(serial_number,SN,12));
   //Increment the serial number
-  IncrementSerial(&buf[0], 0, 12);	
+  IncrementSerial(&serial_number[0], 0, 12);	
+}
 
-  Serial.println("Press enter to update EEPROM...");
-  while(!Serial.available());
-  while(Serial.available()) Serial.read();
-  
+void update_DaVinci_EEPROM() {
   Serial.println("Updating EEPROM...");
   status(unio.simple_write((const byte *)x,TOTALLEN,4));
   status(unio.simple_write((const byte *)x,NEWLEN,4));
   status(unio.simple_write((const byte *)et,HEADTEMP,2)); // extruder temp
   status(unio.simple_write((const byte *)bt,BEDTEMP,2)); // bed temp
   status(unio.simple_write((const byte *)mt,MATERIAL,1)); // Material
-  
   //Write the serial number
-  status(unio.simple_write((const byte *)buf,SN,12)); //Serial Number
+  status(unio.simple_write((const byte *)serial_number,SN,12)); //Serial Number
   status(unio.simple_write((const byte *)x,LEN2,4));
+  
   // same block from offset 0 is offset 64 bytes
   status(unio.simple_write((const byte *)x,64 + TOTALLEN,4));
   status(unio.simple_write((const byte *)x,64 + NEWLEN,4));
@@ -456,13 +480,54 @@ void loop() {
   status(unio.simple_write((const byte *)bt,64 + BEDTEMP,2)); // bed temp
   status(unio.simple_write((const byte *)mt,64 + MATERIAL,1)); // Material
    //Write the serial number
-  status(unio.simple_write((const byte *)buf,64 + SN,12)); //Serial Number
+  status(unio.simple_write((const byte *)serial_number,64 + SN,12)); //Serial Number
   status(unio.simple_write((const byte *)x,64 + LEN2,4));
 
   Serial.println("Dumping Content after modification...");
   dump_eeprom(0,128);
- 
-  digitalWrite(led, HIGH);   // turn the LED on
-  delay(10000);              // wait for ten seconds 
+}
+//#ifdef GONE
+void parse_DaVinci_EEPROM() {
+  char temp[80];
+  
+  Serial.println("Parsing EEPROM...");
+  sprintf(temp, "%02X     CODE: %02X", CODE,     eeprom.low.tCODE);      Serial.println(temp);
+  sprintf(temp, "%02X MATERIAL: %02X", MATERIAL, eeprom.low.tMATERIAL);  Serial.println(temp);
+  sprintf(temp, "%02X    COLOR: %04X", COLOR,    eeprom.low.tCOLOR);     Serial.println(temp);
+  sprintf(temp, "%02X     DATE: %08X", DATE,     eeprom.low.tDATE);      Serial.println(temp);
+  sprintf(temp, "%02X TOTALLEN: %08X", TOTALLEN, eeprom.low.tTOTALLEN);  Serial.println(temp);
+  sprintf(temp, "%02X   NEWLEN: %08X", NEWLEN,   eeprom.low.tNEWLEN);    Serial.println(temp);
+  sprintf(temp, "%02X HEADTEMP: %04X", HEADTEMP, eeprom.low.tHEADTEMP);  Serial.println(temp);
+  sprintf(temp, "%02X  BEDTEMP: %04X", BEDTEMP,  eeprom.low.tBEDTEMP);   Serial.println(temp);
+  sprintf(temp, "%02X     MLOC: %04X", MLOC,     eeprom.low.tMLOC);      Serial.println(temp);
+  sprintf(temp, "%02X     DLOC: %04X", DLOC,     eeprom.low.tDLOC);      Serial.println(temp);
+  //Serial.println(eeprom.low.tSN); //12
+  sprintf(temp, "%02X      CRC: %04X", CRC,      eeprom.low.tCRC);       Serial.println(temp);
+  sprintf(temp, "%02X     LEN2: %08X", LEN2,     eeprom.low.tLEN2);      Serial.println(temp);
+}
+//#endif
+
+char command[0x20];
+void loop() {
+  if (receive_function(command, sizeof(command)))
+  {
+    if (strcmp(command, "?") == 0)
+    {
+      Serial.println("1 Test EEPROM");
+      Serial.println("2 Read EEPROM");
+      Serial.println("3 Update EEPROM");
+      Serial.println("4 Parse EEPROM");
+      Serial.println("reset");
+    }
+    else if (strcmp(command, "1") == 0) test_DaVinci_EEPROM();
+    else if (strcmp(command, "2") == 0) read_DaVinci_EEPROM();
+    else if (strcmp(command, "3") == 0) update_DaVinci_EEPROM();
+    else if (strcmp(command, "4") == 0) parse_DaVinci_EEPROM();
+    else if (strcmp(command, "reset") == 0) reset();
+    else
+    {
+      Serial.println("Command not found, use ? for help.");
+    }
+  }
 }
 
