@@ -32,7 +32,57 @@ Pinout looking at the pads on the EEPROM board
 |  GND   SCIO   +5V  \
 |                    | 
 ----------------------
- 
+
+// ABS White (used)
+00: 5A415A0000363548C0D40100C0D40100 ZAZ..65H........
+10: D2005A00544847423030353500000000 ..Z.THGB0055....
+20: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+30: 883355AA0D2E00000000001004ED00E0 .3U.............
+40: 5A415A0000363548C0D40100C0D40100 ZAZ..65H........
+50: D2005A00544847423030353500000000 ..Z.THGB0055....
+60: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+70: 883355AAC0D40100AA55AA559F200B00 .3U......U.U. ..
+
+// ABS Red (used)
+00: 5A41520000363548C0D40100C0D40100 ZAR..65H........
+10: D2005A00544847423032313300000000 ..Z.THGB0213....
+20: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+30: 883355AAA49301000000001004ED00E0 .3U.............
+40: 5A41520000363548C0D40100C0D40100 ZAR..65H........
+50: D2005A00544847423032313300000000 ..Z.THGB0213....
+60: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+70: 883355AAC0D40100AA55AA559F200B00 .3U......U.U. ..
+
+// ABS Yellow (new)
+00: 5A4159000034384E80A9030080A90300 ZAY..48N........
+10: D2005A00544847423031343100000000 ..Z.THGB0141....
+20: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+30: 883355AA80A90300AA55AA55C7B00A00 .3U......U.U....
+40: 5A4159000034384E80A9030080A90300 ZAY..48N........
+50: D2005A00544847423031343100000000 ..Z.THGB0141....
+60: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+70: 883355AA80A90300AA55AA55C7B00A00 .3U......U.U....
+
+// PLA Red (used)
+00: 5A5032000036354C400D0300400D0300 ZP2..65L@...@...
+10: BE002D00544847423032333700000000 ..-.THGB0237....
+20: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+30: 883355AA660300000000001004ED00E0 .3U.f...........
+40: 5A5032000036354C400D0300400D0300 ZP2..65L@...@...
+50: BE002D00544847423032333700000000 ..-.THGB0237....
+60: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+70: 883355AA400D0300AA55AA559F200B00 .3U.@....U.U. ..
+
+// PLA Yellow (used)
+00: 5A504F0000353347400D0300400D0300 ZPO..53G@...@...
+10: BE002D00544847423031313100000000 ..-.THGB0111....
+20: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+30: 883355AA15B800000000001004ED00E0 .3U.............
+40: 5A504F0000353347400D0300400D0300 ZPO..53G@...@...
+50: BE002D00544847423031313100000000 ..-.THGB0111....
+60: 0000000034000000FFFFFFFFAA55AA55 ....4........U.U
+70: 883355AA400D0300AA55AA551F0E0B00 .3U.@....U.U....
+
 *************************************************************/
 #ifndef _NANODEUNIO_LIB_H
 #define _NANODEUNIO_LIB_H
@@ -60,6 +110,37 @@ Pinout looking at the pads on the EEPROM board
 #define CRC 0x24	//2 Bytes
 #define LEN2 0x34	//4 Bytes
 
+
+#define CLEAR_RED       0x32
+
+#define PURPLE          0x41
+#define BLUE            0x42 
+#define NEON_TANGERINE  0x43
+#define VIRDITY         0x44
+#define OLIVINE         0x45
+#define GOLD            0x46
+#define GREEN           0x47
+#define NEON_GREEN      0x48
+#define SNOW_WHITE      0x49
+#define NEON_YELLOW     0x4A
+#define BLACK           0x4B
+#define VIOLET          0x4C
+#define GRAPE_PURPLE    0x4D
+#define PURPURIN        0x4E 
+#define CLEAR_YELLOW    0x4F
+#define CLEAR_GREEN     0x50 
+#define CLEAR_TANGERINE 0x51
+#define RED             0x52
+#define CYBER_YELLOW    0x53
+#define TANGERINE       0x54 
+#define CLEAR_BLUE      0x55
+#define CLEAR_PURPLE    0x56
+#define WHITE           0x57
+#define CLEAR_MAGENTA   0x58
+#define YELLOW          0x59
+#define NATURE          0x5A
+
+
 typedef struct {
   int8_t  tCODE;     // 0x00 // 1 Byte
   int8_t  tMATERIAL; // 0x01 // 1 Byte
@@ -77,18 +158,18 @@ typedef struct {
   byte tdum2[13];    // 0x26 //13 Bytes
   int32_t tLEN2;     // 0x34 // 4 Bytes
   byte tdum3[4];     // 0x38 // 8 Bytes
-} cart __attribute__((packed));
+} cart; // __attribute__((packed));
 struct {
   cart low;
   cart high;
-}eeprom __attribute__((packed));
+}eeprom; // __attribute__((packed));
 
 void IncrementSerial(unsigned char * cArray, long lAddress, long lSize)
 {
 	unsigned char szTempBuffer[20] = {0};
 	memcpy(szTempBuffer,&cArray[lAddress],lSize);
 	long lSerial = atol((char *)szTempBuffer);
-	lSerial++;
+	lSerial--;
 	sprintf((char *)szTempBuffer,"%04d",lSerial);
 	memcpy(&cArray[lAddress],szTempBuffer,lSize);
 }
@@ -361,6 +442,35 @@ static void status(boolean r)
   else Serial.println("(failure)");
 }
 
+uint8_t eeprom_buf[128];
+uint8_t&  elCODE     = *(uint8_t *) &eeprom_buf[CODE];
+uint8_t&  elMATERIAL = *(uint8_t *) &eeprom_buf[MATERIAL];
+uint16_t& elCOLOR    = *(uint16_t *)&eeprom_buf[COLOR];
+uint32_t& elDATE     = *(uint32_t *)&eeprom_buf[DATE];
+uint32_t& elTOTALLEN = *(uint32_t *)&eeprom_buf[TOTALLEN];
+uint32_t& elNEWLEN   = *(uint32_t *)&eeprom_buf[NEWLEN];
+uint16_t& elHEADTEMP = *(uint16_t *)&eeprom_buf[HEADTEMP];
+uint16_t& elBEDTEMP  = *(uint16_t *)&eeprom_buf[BEDTEMP];
+uint16_t& elMLOC     = *(uint16_t *)&eeprom_buf[MLOC];
+uint16_t& elDLOC     = *(uint16_t *)&eeprom_buf[DLOC];
+//uint8_t& elSN      = *(uint8_t *) &eeprom_buf[SN];
+uint16_t& elCRC      = *(uint16_t *)&eeprom_buf[CRC];
+uint32_t& elLEN2     = *(uint32_t *)&eeprom_buf[LEN2];
+
+uint8_t&  euCODE     = *(uint8_t *) &eeprom_buf[0x40 + CODE];
+uint8_t&  euMATERIAL = *(uint8_t *) &eeprom_buf[0x40 + MATERIAL];
+uint16_t& euCOLOR    = *(uint16_t *)&eeprom_buf[0x40 + COLOR];
+uint32_t& euDATE     = *(uint32_t *)&eeprom_buf[0x40 + DATE];
+uint32_t& euTOTALLEN = *(uint32_t *)&eeprom_buf[0x40 + TOTALLEN];
+uint32_t& euNEWLEN   = *(uint32_t *)&eeprom_buf[0x40 + NEWLEN];
+uint16_t& euHEADTEMP = *(uint16_t *)&eeprom_buf[0x40 + HEADTEMP];
+uint16_t& euBEDTEMP  = *(uint16_t *)&eeprom_buf[0x40 + BEDTEMP];
+uint16_t& euMLOC     = *(uint16_t *)&eeprom_buf[0x40 + MLOC];
+uint16_t& euDLOC     = *(uint16_t *)&eeprom_buf[0x40 + DLOC];
+//uint8_t& euSN      = *(uint8_t *) &eeprom_buf[0x40 + SN];
+uint16_t& euCRC      = *(uint16_t *)&eeprom_buf[0x40 + CRC];
+uint32_t& euLEN2     = *(uint32_t *)&eeprom_buf[0x40 + LEN2];
+
 static void dump_eeprom(word address,word length)
 {
   byte *buf = (byte *)&eeprom; //[128];
@@ -370,21 +480,21 @@ static void dump_eeprom(word address,word length)
 
   NanodeUNIO unio(NANODE_MAC_DEVICE);
   
-  memset(buf,0,128);
-  status(unio.read(buf,address,length));
+  memset(eeprom_buf,0,128);
+  status(unio.read(eeprom_buf,address,length));
   
   for (i=0; i<128; i+=16) {
     x=lbuf;
     sprintf(x,"%02X: ",i);
     x+=4;
     for (j=0; j<16; j++) {
-      sprintf(x,"%02X",buf[i+j]);
+      sprintf(x,"%02X",eeprom_buf[i+j]);
       x+=2;
     }
     *x=32;
     x+=1;
     for (j=0; j<16; j++) {
-      if (buf[i+j]>=32 && buf[i+j]<127) *x=buf[i+j];
+      if (eeprom_buf[i+j]>=32 && eeprom_buf[i+j]<127) *x=eeprom_buf[i+j];
       else *x=46;
       x++;
     }
@@ -405,26 +515,27 @@ Verified with firmware 1.1.I
 
 // Value to write to the EEPROM for remaining filament lenght
 // Default Starter Cartdridge is 120m
-char x[] = {0xc0,0xd4,0x01,0x00}; //120m
-//char x[] = {0x80,0xa9,0x03,0x00}; //240m
+//char x[] = {0xc0,0xd4,0x01,0x00}; //120m
+char x[] = {0x80,0xa9,0x03,0x00}; //240m
 //char x[] = {0x80,0x1a,0x06,0x00}; //400m
 
-// extruder temp, default is 210 C for ABS
-char et[] = {0xd2,0x00}; // 210 C 
+// extruder temp
+//char et[] = {0xd2,0x00}; // 210 C default for ABS
 //char et[] = {0xe6,0x00}; // 230 C
 //char et[] = {0xf5,0x00}; // 245 C
 //char et[] = {0xfa,0x00}; // 250 C
+char et[] = {0xbe,0x00}; // 190 C default for PLA
 
-// bed temp 90 degrees, default ABS
-char bt[] = {0x5a,0x00}; //90C
+// bed temp
+//char bt[] = {0x5a,0x00}; //90C default for ABS
 //char bt[] = {0x32,0x00}; //50C
+char bt[] = {0x2d,0x00}; //40C default for PLA
 //char bt[] = {0x28,0x00}; //40C
 
 //Materials
-
-//char mt[] = {0x41}; //ABS
-char mt[] = {0x50}; //PLA
-//char mt[] = {0x46}; //Flex
+//char mt[] = {0x41}; //ABS (ASCII A)
+char mt[] = {0x50}; //PLA (ASCII P)
+//char mt[] = {0x46}; //Flex (ASCII F)
 
 byte serial_number[20];
 
@@ -491,24 +602,25 @@ void parse_DaVinci_EEPROM() {
   char temp[80];
   
   Serial.println("Parsing EEPROM...");
-  sprintf(temp, "%02X     CODE: %02X", CODE,     eeprom.low.tCODE);      Serial.println(temp);
-  sprintf(temp, "%02X MATERIAL: %02X", MATERIAL, eeprom.low.tMATERIAL);  Serial.println(temp);
-  sprintf(temp, "%02X    COLOR: %04X", COLOR,    eeprom.low.tCOLOR);     Serial.println(temp);
-  sprintf(temp, "%02X     DATE: %08X", DATE,     eeprom.low.tDATE);      Serial.println(temp);
-  sprintf(temp, "%02X TOTALLEN: %08X", TOTALLEN, eeprom.low.tTOTALLEN);  Serial.println(temp);
-  sprintf(temp, "%02X   NEWLEN: %08X", NEWLEN,   eeprom.low.tNEWLEN);    Serial.println(temp);
-  sprintf(temp, "%02X HEADTEMP: %04X", HEADTEMP, eeprom.low.tHEADTEMP);  Serial.println(temp);
-  sprintf(temp, "%02X  BEDTEMP: %04X", BEDTEMP,  eeprom.low.tBEDTEMP);   Serial.println(temp);
-  sprintf(temp, "%02X     MLOC: %04X", MLOC,     eeprom.low.tMLOC);      Serial.println(temp);
-  sprintf(temp, "%02X     DLOC: %04X", DLOC,     eeprom.low.tDLOC);      Serial.println(temp);
-  //Serial.println(eeprom.low.tSN); //12
-  sprintf(temp, "%02X      CRC: %04X", CRC,      eeprom.low.tCRC);       Serial.println(temp);
-  sprintf(temp, "%02X     LEN2: %08X", LEN2,     eeprom.low.tLEN2);      Serial.println(temp);
+  sprintf(temp, "%02X     CODE: %02X %02X", CODE,     elCODE,     euCODE);      Serial.println(temp);
+  sprintf(temp, "%02X MATERIAL: %02X %02X", MATERIAL, elMATERIAL, euMATERIAL);  Serial.println(temp);
+  sprintf(temp, "%02X    COLOR: %04X %04X", COLOR,    elCOLOR,    euCOLOR);     Serial.println(temp);
+  sprintf(temp, "%02X     DATE: %08X %08X", DATE,     elDATE,     euDATE);      Serial.println(temp);
+  sprintf(temp, "%02X TOTALLEN: %08X %08X", TOTALLEN, elTOTALLEN, euTOTALLEN);  Serial.println(temp);
+  sprintf(temp, "%02X   NEWLEN: %08X %08X", NEWLEN,   elNEWLEN,   euNEWLEN);    Serial.println(temp);
+  sprintf(temp, "%02X HEADTEMP: %04X %04X", HEADTEMP, elHEADTEMP, euHEADTEMP);  Serial.println(temp);
+  sprintf(temp, "%02X  BEDTEMP: %04X %04X", BEDTEMP,  elBEDTEMP,  euBEDTEMP);   Serial.println(temp);
+  sprintf(temp, "%02X     MLOC: %04X %04X", MLOC,     elMLOC,     euMLOC);      Serial.println(temp);
+  sprintf(temp, "%02X     DLOC: %04X %04X", DLOC,     elDLOC,     euDLOC);      Serial.println(temp);
+  //Serial.println(elSN); //12
+  sprintf(temp, "%02X      CRC: %04X %04X", CRC,      elCRC,      euCRC);       Serial.println(temp);
+  sprintf(temp, "%02X     LEN2: %08X %08X", LEN2,     elLEN2,     euLEN2);      Serial.println(temp);
 }
 //#endif
 
 char command[0x20];
 void loop() {
+  static bool enable_write = false;
   if (receive_function(command, sizeof(command)))
   {
     if (strcmp(command, "?") == 0)
@@ -517,12 +629,20 @@ void loop() {
       Serial.println("2 Read EEPROM");
       Serial.println("3 Update EEPROM");
       Serial.println("4 Parse EEPROM");
+      Serial.println("enable enable_write = 1");
+      Serial.println("disable enable_write = 0");
       Serial.println("reset");
+      Serial.println("");
+      Serial.print("enable = ");
+      Serial.println(enable_write);
+      
     }
     else if (strcmp(command, "1") == 0) test_DaVinci_EEPROM();
     else if (strcmp(command, "2") == 0) read_DaVinci_EEPROM();
-    else if (strcmp(command, "3") == 0) update_DaVinci_EEPROM();
+    else if (strcmp(command, "3") == 0) { if(enable_write) update_DaVinci_EEPROM(); }
     else if (strcmp(command, "4") == 0) parse_DaVinci_EEPROM();
+    else if (strcmp(command, "enable") == 0) enable_write = true;
+    else if (strcmp(command, "disable") == 0) enable_write = false;
     else if (strcmp(command, "reset") == 0) reset();
     else
     {
